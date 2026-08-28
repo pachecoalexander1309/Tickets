@@ -5,24 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface Event {
-  id: string;
-  name: string;
-  date: string;
-  /** @nullable */
-  time?: string | null;
-  venue: string;
-  city: string;
-  url: string;
-}
-
-export interface ErrorResponse {
-  error: string;
-}
 
 export type SearchEventsParams = {
 /**
@@ -32,4 +14,3 @@ export type SearchEventsParams = {
  */
 keyword: string;
 };
-

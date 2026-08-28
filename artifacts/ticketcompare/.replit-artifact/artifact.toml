@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "TicketCompare"
+description = "A trustworthy event search experience that helps people find official Ticketmaster events quickly, starting with live Toronto Blue Jays results."
+version = "1.0.0"
+id = "artifacts/ticketcompare"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23139
+
+[services.development]
+run = "pnpm --filter @workspace/ticketcompare run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ticketcompare", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ticketcompare/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23139"
+BASE_PATH = "/"

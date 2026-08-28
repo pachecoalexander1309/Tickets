@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: events
+    description: Ticketmaster event discovery
 paths:
   /healthz:
     get:
@@ -24,6 +26,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /events/search:
+    get:
+      operationId: searchEvents
+      tags: [events]
+      summary: Search Ticketmaster events
+      description: Searches live events through the server-side Ticketmaster Discovery API integration.
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          description: Event, artist, team, or venue to search for
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      responses:
+        "200":
+          description: Matching events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+        "400":
+          description: Invalid search query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Ticketmaster request failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +71,35 @@ components:
           type: string
       required:
         - status
+    Event:
+      type: object
+      required:
+        - id
+        - name
+        - date
+        - venue
+        - city
+        - url
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        date:
+          type: string
+        time:
+          type: ["string", "null"]
+        venue:
+          type: string
+        city:
+          type: string
+        url:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
 

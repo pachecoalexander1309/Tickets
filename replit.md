@@ -1,6 +1,6 @@
-# [Project name]
+# TicketCompare
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+TicketCompare helps people find live events and go directly to official Ticketmaster ticket pages.
 
 ## Run & Operate
 
@@ -9,7 +9,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `TICKETMASTER_API_KEY` — server-only Ticketmaster Discovery API key
 
 ## Stack
 
@@ -22,23 +22,34 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/ticketcompare/src/App.tsx` — responsive search page and event result states
+- `artifacts/ticketcompare/src/index.css` — TicketCompare theme and visual tokens
+- `artifacts/api-server/src/routes/events.ts` — server-side Ticketmaster Discovery API proxy
+- `lib/api-spec/openapi.yaml` — source of truth for the event search contract
+- `lib/api-client-react/src/generated/` — generated typed client hooks
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Keep Ticketmaster requests in the shared Express API server so the API key is never bundled into the browser.
+- Return a small normalized event shape instead of exposing the full Ticketmaster response to the UI.
+- Focus Blue Jays searches on Toronto using Ticketmaster's city filter.
+- Do not display ticket prices or marketplace comparisons until real comparison sources are added.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Search live events by artist, team, venue, city, or event name.
+- Browse popular search shortcuts.
+- View event date, optional start time, venue, city, and an official Ticketmaster link.
+- Show loading, empty, retry, and unavailable-service states.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Keep the MVP focused and trustworthy; avoid invented prices and marketplace data.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Ticketmaster returns HTTP 401 when the configured key is rejected; update `TICKETMASTER_API_KEY` through Replit Secrets rather than putting it in frontend code.
+- After changing the API contract, regenerate the client with `pnpm --filter @workspace/api-spec run codegen`.
 
 ## Pointers
 

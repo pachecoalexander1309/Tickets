@@ -6,7 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './compareTicketsParams';
 export * from './errorResponse';
 export * from './event';
 export * from './healthStatus';
 export * from './searchEventsParams';
+export * from './ticketComparison';
+export * from './ticketListing';

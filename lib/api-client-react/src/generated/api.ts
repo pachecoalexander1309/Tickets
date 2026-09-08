@@ -16,10 +16,12 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CompareTicketsParams,
   ErrorResponse,
   Event,
   HealthStatus,
-  SearchEventsParams
+  SearchEventsParams,
+  TicketComparison
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -200,6 +202,91 @@ export function useSearchEvents<TData = Awaited<ReturnType<typeof searchEvents>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getSearchEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCompareTicketsUrl = (params: CompareTicketsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/tickets/compare?${stringifiedParams}` : `/api/tickets/compare`
+}
+
+/**
+ * Discovers matching marketplace event URLs and captures sandbox ticket listings through Tickets.dev.
+ * @summary Compare sandbox ticket listings
+ */
+export const compareTickets = async (params: CompareTicketsParams, options?: Parameters<typeof customFetch>[1]): Promise<TicketComparison> => {
+
+  return customFetch<TicketComparison>(getCompareTicketsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCompareTicketsQueryKey = (params?: CompareTicketsParams,) => {
+    return [
+    `/api/tickets/compare`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getCompareTicketsQueryOptions = <TData = Awaited<ReturnType<typeof compareTickets>>, TError = ErrorType<ErrorResponse>>(params: CompareTicketsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof compareTickets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCompareTicketsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof compareTickets>>> = ({ signal }) => compareTickets(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof compareTickets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CompareTicketsQueryResult = NonNullable<Awaited<ReturnType<typeof compareTickets>>>
+export type CompareTicketsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Compare sandbox ticket listings
+ */
+
+export function useCompareTickets<TData = Awaited<ReturnType<typeof compareTickets>>, TError = ErrorType<ErrorResponse>>(
+ params: CompareTicketsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof compareTickets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCompareTicketsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

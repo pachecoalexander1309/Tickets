@@ -2,11 +2,13 @@ import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   ArrowUpRight,
+  ArrowDownUp,
   CalendarDays,
   Check,
   ChevronRight,
   CircleAlert,
   Clock3,
+  ExternalLink,
   MapPin,
   Search,
   ShieldCheck,
@@ -14,8 +16,12 @@ import {
   X,
 } from 'lucide-react';
 import {
+  getCompareTicketsQueryKey,
   getSearchEventsQueryKey,
+  type TicketComparison,
+  type TicketListing,
   useSearchEvents,
+  useCompareTickets,
   type Event,
 } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -29,6 +35,7 @@ const queryClient = new QueryClient();
 function Home() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const searchParams = useMemo(
     () => ({ keyword: submittedQuery }),
     [submittedQuery],
@@ -46,6 +53,20 @@ function Home() {
       queryKey: searchKey,
     },
   });
+  const compareParams = useMemo(
+    () => ({
+      eventUrl: selectedEvent?.url ?? '',
+      eventName: selectedEvent?.name ?? '',
+      eventDate: selectedEvent?.date ?? null,
+    }),
+    [selectedEvent],
+  );
+  const compareQuery = useCompareTickets(compareParams, {
+    query: {
+      enabled: Boolean(selectedEvent),
+      queryKey: getCompareTicketsQueryKey(compareParams),
+    },
+  });
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,6 +82,7 @@ function Home() {
   const clearSearch = () => {
     setQuery('');
     setSubmittedQuery('');
+    setSelectedEvent(null);
   };
 
   return (
@@ -204,6 +226,17 @@ function Home() {
               isError={isError}
               onRetry={() => void refetch()}
               onReset={clearSearch}
+              onCompare={setSelectedEvent}
+            />
+          )}
+          {selectedEvent && (
+            <ComparisonSection
+              event={selectedEvent}
+              data={compareQuery.data}
+              isLoading={compareQuery.isLoading || compareQuery.isFetching}
+              isError={compareQuery.isError}
+              onRetry={() => void compareQuery.refetch()}
+              onClose={() => setSelectedEvent(null)}
             />
           )}
         </section>
@@ -232,7 +265,7 @@ function Home() {
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
         <span data-testid="text-footer-brand">TicketCompare / a clearer way in</span>
         <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em]">
-          Event data provided by Ticketmaster
+           Ticketmaster events · Tickets.dev sandbox comparisons
         </span>
       </footer>
     </div>
@@ -317,6 +350,7 @@ function ResultsSection({
   isError,
   onRetry,
   onReset,
+  onCompare,
 }: {
   query: string;
   events: Event[];
@@ -324,6 +358,7 @@ function ResultsSection({
   isError: boolean;
   onRetry: () => void;
   onReset: () => void;
+  onCompare: (event: Event) => void;
 }) {
   return (
     <div data-testid="section-search-results">
@@ -410,7 +445,7 @@ function ResultsSection({
             <span>Official listings</span>
           </div>
           {events.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventCard key={event.id} event={event} onCompare={onCompare} />
           ))}
         </div>
       )}
@@ -444,7 +479,13 @@ function ResultsSkeleton() {
   );
 }
 
-function EventCard({ event }: { event: Event }) {
+function EventCard({
+  event,
+  onCompare,
+}: {
+  event: Event;
+  onCompare: (event: Event) => void;
+}) {
   return (
     <article
       role="listitem"
@@ -467,16 +508,27 @@ function EventCard({ event }: { event: Event }) {
             <InfoLine icon={<MapPin size={15} aria-hidden="true" />} value={`${event.venue} · ${event.city}`} />
           </div>
         </div>
-        <a
-          href={event.url}
-          target="_blank"
-          rel="noreferrer"
-          data-testid={`link-official-tickets-${event.id}`}
-          className="soft-focus inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-sm bg-foreground px-4 text-xs font-bold text-background transition-opacity hover:opacity-85"
-        >
-           View tickets
-          <ArrowUpRight size={15} aria-hidden="true" />
-        </a>
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          <button
+            type="button"
+            onClick={() => onCompare(event)}
+            data-testid={`button-compare-tickets-${event.id}`}
+            className="soft-focus inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-primary px-4 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-85"
+          >
+            Compare tickets
+            <ArrowDownUp size={15} aria-hidden="true" />
+          </button>
+          <a
+            href={event.url}
+            target="_blank"
+            rel="noreferrer"
+            data-testid={`link-official-tickets-${event.id}`}
+            className="soft-focus inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-border px-4 text-xs font-bold text-foreground hover:border-primary hover:text-primary"
+          >
+            View tickets
+            <ArrowUpRight size={15} aria-hidden="true" />
+          </a>
+        </div>
       </div>
       <div className="ticket-divider-line mt-5 flex items-center justify-between pt-3 font-mono-ui text-[9px] uppercase tracking-[0.13em] text-muted-foreground">
         <span>Ticketmaster listing</span>
@@ -484,6 +536,249 @@ function EventCard({ event }: { event: Event }) {
       </div>
     </article>
   );
+}
+
+function ComparisonSection({
+  event,
+  data,
+  isLoading,
+  isError,
+  onRetry,
+  onClose,
+}: {
+  event: Event;
+  data: TicketComparison | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+  onClose: () => void;
+}) {
+  const [sortBy, setSortBy] = useState<'price' | 'value' | 'section'>('price');
+  const listings = useMemo(() => {
+    const result = [...(data?.listings ?? [])];
+    return result.sort((a, b) => {
+      if (sortBy === 'section') {
+        return (
+          a.section.localeCompare(b.section, undefined, { numeric: true }) ||
+          a.totalPrice - b.totalPrice
+        );
+      }
+
+      if (a.totalPrice !== b.totalPrice) return a.totalPrice - b.totalPrice;
+      if (sortBy === 'value') return b.quantity - a.quantity;
+      return a.marketplace.localeCompare(b.marketplace);
+    });
+  }, [data?.listings, sortBy]);
+
+  const marketplaceCount = new Set(
+    listings.map((listing) => listing.marketplace),
+  ).size;
+
+  return (
+    <section
+      className="mt-14 border-t border-border pt-10"
+      data-testid="section-ticket-comparison"
+    >
+      <div className="flex flex-col gap-5 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono-ui text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+              Ticket comparison
+            </span>
+            <span className="rounded-sm bg-primary/15 px-2 py-1 font-mono-ui text-[9px] font-bold uppercase tracking-[0.12em] text-primary">
+              DEMO DATA
+            </span>
+          </div>
+          <h2 className="mt-2 max-w-3xl text-3xl font-bold tracking-[-0.05em] sm:text-4xl">
+            Compare listings for{' '}
+            <span className="font-editorial font-normal italic">
+              “{event.name}”
+            </span>
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Sandbox listings from Tickets.dev. These are not live ticket prices.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          data-testid="button-close-comparison"
+          className="soft-focus inline-flex w-fit items-center gap-2 rounded-sm border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:border-primary hover:text-foreground"
+        >
+          <X size={14} aria-hidden="true" />
+          Close comparison
+        </button>
+      </div>
+
+      {isLoading && <ComparisonSkeleton />}
+
+      {!isLoading && isError && (
+        <div
+          className="my-8 flex flex-col items-start gap-4 rounded-md border border-destructive/35 bg-destructive/5 p-6 sm:flex-row sm:items-center sm:justify-between"
+          role="alert"
+          aria-live="assertive"
+        >
+          <div className="flex gap-3">
+            <CircleAlert
+              className="mt-0.5 shrink-0 text-destructive"
+              size={20}
+              aria-hidden="true"
+            />
+            <div>
+              <div className="font-bold">Comparison data is unavailable</div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Tickets.dev could not load sandbox listings for this event.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onRetry}
+            data-testid="button-retry-comparison"
+            className="soft-focus rounded-sm bg-foreground px-4 py-2 text-xs font-bold text-background hover:opacity-85"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !isError && data && listings.length === 0 && (
+        <div
+          className="my-8 rounded-md border border-dashed border-border bg-card p-8 text-center sm:p-12"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+            <Ticket size={19} aria-hidden="true" />
+          </div>
+          <h3 className="mt-4 text-lg font-bold">No sandbox listings found</h3>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+            Tickets.dev returned no available listings for this event.
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !isError && data && listings.length > 0 && (
+        <>
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="font-mono-ui text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              {listings.length} listings · {marketplaceCount} marketplaces ·{' '}
+              {data.currency}
+            </div>
+            <label className="flex items-center gap-2 text-xs font-bold">
+              <span className="text-muted-foreground">Sort by</span>
+              <select
+                value={sortBy}
+                onChange={(input) =>
+                  setSortBy(input.target.value as 'price' | 'value' | 'section')
+                }
+                data-testid="select-comparison-sort"
+                className="soft-focus rounded-sm border border-input bg-card px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+              >
+                <option value="price">Lowest total price</option>
+                <option value="value">Best value</option>
+                <option value="section">Section</option>
+              </select>
+            </label>
+          </div>
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function ComparisonSkeleton() {
+  return (
+    <div className="mt-6 grid gap-3 lg:grid-cols-2" data-testid="status-loading-comparison">
+      {[1, 2, 3, 4].map((item) => (
+        <div
+          key={item}
+          className="min-h-[240px] animate-pulse rounded-md border border-border bg-card p-5"
+        >
+          <div className="h-3 w-24 rounded-sm bg-muted" />
+          <div className="mt-5 h-6 w-32 rounded-sm bg-muted" />
+          <div className="mt-7 grid grid-cols-2 gap-3">
+            <div className="h-10 rounded-sm bg-muted" />
+            <div className="h-10 rounded-sm bg-muted" />
+            <div className="h-10 rounded-sm bg-muted" />
+            <div className="h-10 rounded-sm bg-muted" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ListingCard({ listing }: { listing: TicketListing }) {
+  return (
+    <article
+      className="result-card rounded-md border border-border bg-card p-5 sm:p-6"
+      data-testid={`card-listing-${listing.id}`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="font-mono-ui text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+            {listing.marketplace}
+          </div>
+          <h3 className="mt-2 text-2xl font-bold tracking-[-0.05em]">
+            {formatMoney(listing.totalPrice, listing.currency)}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">per ticket · all-in</p>
+        </div>
+        <span className="rounded-sm border border-border px-2 py-1 font-mono-ui text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          DEMO DATA
+        </span>
+      </div>
+      <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-4 text-sm">
+        <ListingDetail label="Section" value={listing.section} />
+        <ListingDetail label="Row" value={listing.row} />
+        <ListingDetail label="Quantity" value={`${listing.quantity} tickets`} />
+        <ListingDetail
+          label="Ticket price"
+          value={formatMoney(listing.ticketPrice, listing.currency)}
+        />
+        <ListingDetail
+          label="Fees"
+          value={formatMoney(listing.fees, listing.currency)}
+        />
+        <ListingDetail label="Currency" value={listing.currency} />
+      </div>
+      {listing.url && (
+        <a
+          href={listing.url}
+          target="_blank"
+          rel="noreferrer"
+          className="soft-focus mt-6 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-sm border border-border px-4 text-xs font-bold text-foreground hover:border-primary hover:text-primary"
+        >
+          View listing
+          <ExternalLink size={14} aria-hidden="true" />
+        </a>
+      )}
+    </article>
+  );
+}
+
+function ListingDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="font-mono-ui text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-1 font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function formatMoney(value: number, currency: string) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency || 'USD',
+  }).format(value);
 }
 
 function InfoLine({ icon, value }: { icon: ReactNode; value: string }) {

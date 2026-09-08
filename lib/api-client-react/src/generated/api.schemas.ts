@@ -24,6 +24,30 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface TicketListing {
+  id: string;
+  marketplace: string;
+  section: string;
+  row: string;
+  quantity: number;
+  ticketPrice: number;
+  fees: number;
+  totalPrice: number;
+  currency: string;
+  /** @nullable */
+  url: string | null;
+}
+
+export interface TicketComparison {
+  eventName: string;
+  eventDate: string;
+  venue: string;
+  city: string;
+  currency: string;
+  demoData: boolean;
+  listings: TicketListing[];
+}
+
 export type SearchEventsParams = {
 /**
  * Event, artist, team, or venue to search for
@@ -31,5 +55,25 @@ export type SearchEventsParams = {
  * @maxLength 120
  */
 keyword: string;
+};
+
+export type CompareTicketsParams = {
+/**
+ * Ticketmaster event URL selected by the user
+ * @minLength 1
+ * @maxLength 2000
+ */
+eventUrl: string;
+/**
+ * Event name used to match equivalent marketplace listings
+ * @minLength 1
+ * @maxLength 240
+ */
+eventName: string;
+/**
+ * Local event date used to improve marketplace matching
+ * @nullable
+ */
+eventDate?: string | null;
 };
 

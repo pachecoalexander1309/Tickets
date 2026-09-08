@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: events
     description: Ticketmaster event discovery
+  - name: tickets
+    description: Sandbox ticket comparison
 paths:
   /healthz:
     get:
@@ -62,6 +64,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /tickets/compare:
+    get:
+      operationId: compareTickets
+      tags: [tickets]
+      summary: Compare sandbox ticket listings
+      description: Discovers matching marketplace event URLs and captures sandbox ticket listings through Tickets.dev.
+      parameters:
+        - name: eventUrl
+          in: query
+          required: true
+          description: Ticketmaster event URL selected by the user
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 2000
+        - name: eventName
+          in: query
+          required: true
+          description: Event name used to match equivalent marketplace listings
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 240
+        - name: eventDate
+          in: query
+          required: false
+          description: Local event date used to improve marketplace matching
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Normalized sandbox ticket listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketComparison"
+        "400":
+          description: Invalid event selection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Tickets.dev request failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -102,4 +152,65 @@ components:
       properties:
         error:
           type: string
+    TicketListing:
+      type: object
+      required:
+        - id
+        - marketplace
+        - section
+        - row
+        - quantity
+        - ticketPrice
+        - fees
+        - totalPrice
+        - currency
+        - url
+      properties:
+        id:
+          type: string
+        marketplace:
+          type: string
+        section:
+          type: string
+        row:
+          type: string
+        quantity:
+          type: number
+        ticketPrice:
+          type: number
+        fees:
+          type: number
+        totalPrice:
+          type: number
+        currency:
+          type: string
+        url:
+          type: ["string", "null"]
+    TicketComparison:
+      type: object
+      required:
+        - eventName
+        - eventDate
+        - venue
+        - city
+        - currency
+        - demoData
+        - listings
+      properties:
+        eventName:
+          type: string
+        eventDate:
+          type: string
+        venue:
+          type: string
+        city:
+          type: string
+        currency:
+          type: string
+        demoData:
+          type: boolean
+        listings:
+          type: array
+          items:
+            $ref: "#/components/schemas/TicketListing"
 

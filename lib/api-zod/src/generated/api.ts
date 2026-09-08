@@ -41,3 +41,41 @@ export const SearchEventsResponseItem = zod.object({
 export const SearchEventsResponse = zod.array(SearchEventsResponseItem)
 
 
+/**
+ * Discovers matching marketplace event URLs and captures sandbox ticket listings through Tickets.dev.
+ * @summary Compare sandbox ticket listings
+ */
+export const compareTicketsQueryEventUrlMax = 2000;
+
+export const compareTicketsQueryEventNameMax = 240;
+
+
+
+export const CompareTicketsQueryParams = zod.object({
+  "eventUrl": zod.coerce.string().min(1).max(compareTicketsQueryEventUrlMax).describe('Ticketmaster event URL selected by the user'),
+  "eventName": zod.coerce.string().min(1).max(compareTicketsQueryEventNameMax).describe('Event name used to match equivalent marketplace listings'),
+  "eventDate": zod.coerce.string().nullish().describe('Local event date used to improve marketplace matching')
+})
+
+export const CompareTicketsResponse = zod.object({
+  "eventName": zod.string(),
+  "eventDate": zod.string(),
+  "venue": zod.string(),
+  "city": zod.string(),
+  "currency": zod.string(),
+  "demoData": zod.boolean(),
+  "listings": zod.array(zod.object({
+  "id": zod.string(),
+  "marketplace": zod.string(),
+  "section": zod.string(),
+  "row": zod.string(),
+  "quantity": zod.number(),
+  "ticketPrice": zod.number(),
+  "fees": zod.number(),
+  "totalPrice": zod.number(),
+  "currency": zod.string(),
+  "url": zod.string().nullable()
+}))
+})
+
+

@@ -1,4 +1,10 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   ArrowUpRight,
@@ -36,6 +42,15 @@ function Home() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  useEffect(() => {
+    if (!selectedEvent) return;
+    window.history.replaceState(null, '', '#ticket-comparison');
+    requestAnimationFrame(() => {
+      document
+        .getElementById('ticket-comparison')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [selectedEvent]);
   const searchParams = useMemo(
     () => ({ keyword: submittedQuery }),
     [submittedQuery],
@@ -576,6 +591,7 @@ function ComparisonSection({
 
   return (
     <section
+      id="ticket-comparison"
       className="mt-14 border-t border-border pt-10"
       data-testid="section-ticket-comparison"
     >

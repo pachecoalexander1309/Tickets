@@ -599,14 +599,14 @@ function ComparisonSection({
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-mono-ui text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-              Ticket comparison
+            Seller price comparison
             </span>
             <span className="rounded-sm bg-primary/15 px-2 py-1 font-mono-ui text-[9px] font-bold uppercase tracking-[0.12em] text-primary">
               DEMO DATA
             </span>
           </div>
           <h2 className="mt-2 max-w-3xl text-3xl font-bold tracking-[-0.05em] sm:text-4xl">
-            Compare listings for{' '}
+            Compare sellers for{' '}
             <span className="font-editorial font-normal italic">
               “{event.name}”
             </span>
@@ -641,9 +641,10 @@ function ComparisonSection({
               aria-hidden="true"
             />
             <div>
-              <div className="font-bold">Comparison data is unavailable</div>
+              <div className="font-bold">No cross-seller comparison available</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Tickets.dev could not load sandbox listings for this event.
+                Tickets.dev did not return two seller sources for this event, so
+                Ticketmaster-only prices are not shown as a comparison.
               </p>
             </div>
           </div>
@@ -667,9 +668,12 @@ function ComparisonSection({
           <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-muted-foreground">
             <Ticket size={19} aria-hidden="true" />
           </div>
-          <h3 className="mt-4 text-lg font-bold">No sandbox listings found</h3>
+          <h3 className="mt-4 text-lg font-bold">
+            No cross-seller listings found
+          </h3>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-            Tickets.dev returned no available listings for this event.
+            Tickets.dev does not currently map this event to more than one seller
+            in the sandbox.
           </p>
         </div>
       )}

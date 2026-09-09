@@ -35,7 +35,7 @@ TicketCompare helps people find live events and go directly to official Ticketma
 - Return a small normalized event shape instead of exposing the full Ticketmaster response to the UI.
 - Focus Blue Jays searches on Toronto using Ticketmaster's city filter.
 - Keep Tickets.dev sandbox-only by requiring a `tk_test_` key and mark comparison responses as demo data.
-- Do not display ticket prices or marketplace comparisons until real comparison sources are added.
+- Never present a single seller's listings as a marketplace comparison; require at least two matched seller sources.
 
 ## Product
 

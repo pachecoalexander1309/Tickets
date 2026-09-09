@@ -1,0 +1,1 @@
+- [Tickets.dev seller matching](tickets-dev-seller-matching.md) — only compare listings after event resolution returns two verified seller sources; never fall back to an unrelated sandbox fixture.

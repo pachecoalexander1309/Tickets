@@ -45,7 +45,9 @@ type TicketsDevSnapshot = {
   source?: string;
   eventName?: string;
   eventDateLocal?: string;
+  date?: string;
   venueName?: string;
+  venue?: string;
   venueCity?: string;
   sourceUrl?: string;
   currency?: string;
@@ -64,6 +66,11 @@ function normalizeEventName(value: string): string {
     .trim();
 }
 
+function normalizePath(value: string): string {
+  const path = value.replace(/\/+$/, "");
+  return path || "/";
+}
+
 function matchesSelectedEvent(
   event: TicketsDevEvent,
   selectedUrl: URL,
@@ -77,7 +84,7 @@ function matchesSelectedEvent(
     try {
       const sourceUrl = new URL(source.url);
       return (
-        sourceUrl.pathname === selectedUrl.pathname &&
+        normalizePath(sourceUrl.pathname) === normalizePath(selectedUrl.pathname) &&
         sourceUrl.hostname.includes("ticketmaster")
       );
     } catch {
@@ -98,6 +105,37 @@ function matchesSelectedEvent(
     event.eventDateLocal.startsWith(selectedDateValue);
 
   return nameMatches && dateMatches;
+}
+
+async function readSnapshot(response: Response): Promise<TicketsDevSnapshot | null> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const body = await response.text();
+  if (!body.trim()) return null;
+
+  if (contentType.includes("application/json") || body.trimStart().startsWith("{")) {
+    try {
+      return JSON.parse(body) as TicketsDevSnapshot;
+    } catch {
+      return null;
+    }
+  }
+
+  for (const block of body.split(/\n\s*\n/)) {
+    const data = block
+      .split("\n")
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trim())
+      .join("\n");
+    if (!data) continue;
+    try {
+      const parsed = JSON.parse(data) as { listings?: TicketsDevListing[] } & TicketsDevSnapshot;
+      if (Array.isArray(parsed.listings)) return parsed;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 async function readJson<T>(response: Response): Promise<T | null> {
@@ -139,7 +177,11 @@ router.get("/tickets/compare", async (req, res): Promise<void> => {
     return;
   }
 
-  const headers = { Accept: "application/json", "x-api-key": apiKey };
+  const headers = {
+    Accept: "application/json, text/event-stream",
+    Authorization: `Bearer ${apiKey}`,
+    "x-api-key": apiKey,
+  };
 
   try {
     const discoveryQuery = eventName.replace(/\s*\([^)]*\)/g, "").trim();
@@ -175,7 +217,9 @@ router.get("/tickets/compare", async (req, res): Promise<void> => {
       }
 
       discovery = candidate;
-      if (candidate?.events?.some((event) => event.sources?.length)) break;
+      if (candidate?.events?.some((event) =>
+        matchesSelectedEvent(event, selectedEventUrl, eventName, eventDate),
+      )) break;
     }
 
     const matchedEvent = discovery?.events?.find((event) =>
@@ -236,7 +280,7 @@ router.get("/tickets/compare", async (req, res): Promise<void> => {
           `${TICKETS_DEV_BASE_URL}/capture/${encodeURIComponent(source.marketplace)}?${captureParams.toString()}`,
           { headers },
         );
-        const snapshot = await readJson<TicketsDevSnapshot>(response);
+        const snapshot = await readSnapshot(response);
 
         if (!response.ok || !snapshot) {
           req.log.warn(
@@ -312,11 +356,15 @@ router.get("/tickets/compare", async (req, res): Promise<void> => {
       CompareTicketsResponse.parse({
         eventName: firstSnapshot.eventName || matchedEvent?.name || eventName,
         eventDate:
-          firstSnapshot.eventDateLocal?.slice(0, 10) ||
+          (firstSnapshot.eventDateLocal || firstSnapshot.date)?.slice(0, 10) ||
           matchedEvent?.eventDateLocal?.slice(0, 10) ||
           eventDate ||
           "Date to be announced",
-        venue: firstSnapshot.venueName || matchedEvent?.venue?.name || "Venue not listed",
+        venue:
+          firstSnapshot.venueName ||
+          firstSnapshot.venue ||
+          matchedEvent?.venue?.name ||
+          "Venue not listed",
         city: firstSnapshot.venueCity || matchedEvent?.venue?.city || "City not listed",
         currency,
         demoData: true,

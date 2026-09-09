@@ -250,6 +250,7 @@ function Home() {
               data={compareQuery.data}
               isLoading={compareQuery.isLoading || compareQuery.isFetching}
               isError={compareQuery.isError}
+              error={compareQuery.error}
               onRetry={() => void compareQuery.refetch()}
               onClose={() => setSelectedEvent(null)}
             />
@@ -558,6 +559,7 @@ function ComparisonSection({
   data,
   isLoading,
   isError,
+  error,
   onRetry,
   onClose,
 }: {
@@ -565,6 +567,7 @@ function ComparisonSection({
   data: TicketComparison | undefined;
   isLoading: boolean;
   isError: boolean;
+  error?: unknown;
   onRetry: () => void;
   onClose: () => void;
 }) {
@@ -588,6 +591,7 @@ function ComparisonSection({
   const marketplaceCount = new Set(
     listings.map((listing) => listing.marketplace),
   ).size;
+  const comparisonError = getComparisonErrorMessage(error);
 
   return (
     <section
@@ -643,8 +647,7 @@ function ComparisonSection({
             <div>
               <div className="font-bold">No cross-seller comparison available</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Tickets.dev did not return two seller sources for this event, so
-                Ticketmaster-only prices are not shown as a comparison.
+                {comparisonError}
               </p>
             </div>
           </div>
@@ -710,6 +713,20 @@ function ComparisonSection({
       )}
     </section>
   );
+}
+
+function getComparisonErrorMessage(error: unknown): string {
+  if (!error || typeof error !== 'object') {
+    return 'Tickets.dev did not return two seller sources for this event, so Ticketmaster-only prices are not shown as a comparison.';
+  }
+
+  const data = (error as { data?: unknown }).data;
+  if (data && typeof data === 'object') {
+    const message = (data as { error?: unknown }).error;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+
+  return 'The sandbox ticket service could not complete this comparison. Try again.';
 }
 
 function ComparisonSkeleton() {

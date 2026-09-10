@@ -7,20 +7,17 @@ import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 
 const port = Number(process.env.PORT) || 3000;
 
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    'BASE_PATH environment variable is required but was not provided.',
-  );
-}
+const basePath = process.env.BASE_PATH || '/';
 
 export default defineConfig({
   base: basePath,
   plugins: [
-    const basePath = process.env.BASE_PATH || '/';
-
+    react(),
+    tailwindcss(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== 'production' &&
+    process.env.REPL_ID !== undefined
+      ? [
           await import('@replit/vite-plugin-cartographer').then((m) =>
             m.cartographer({
               root: path.resolve(import.meta.dirname, '..'),

@@ -48,7 +48,6 @@ router.get("/events/search", async (req, res): Promise<void> => {
     keyword,
     size: "20",
     sort: "date,asc",
-    countryCode: "CA",
   });
 
   // Ticketmaster's city filter keeps the most common Blue Jays search focused

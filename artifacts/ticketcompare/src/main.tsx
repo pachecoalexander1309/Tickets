@@ -6,7 +6,7 @@ import { setBaseUrl } from '@workspace/api-client-react';
 
 import './index.css';
 
-setBaseUrl(import.meta.env.VITE_API_BASE_URL || 'https://tickets-2opa.onrender.com/api');
+setBaseUrl(import.meta.env.VITE_API_BASE_URL || 'https://tickets-2opa.onrender.com');
 
 createRoot(document.getElementById('root')!, {
   // Keeps caught errors off reportError(), which would raise the dev overlay.

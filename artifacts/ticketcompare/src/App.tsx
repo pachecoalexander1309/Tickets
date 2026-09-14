@@ -110,7 +110,7 @@ function Home() {
             </div>
             <div>
               <div className="text-[15px] font-bold tracking-[-0.02em]">
-                TicketCompare
+                SeatScout
               </div>
               <div className="font-mono-ui text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
                 official routes only
@@ -279,7 +279,7 @@ function Home() {
       </main>
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-        <span data-testid="text-footer-brand">TicketCompare / a clearer way in</span>
+        <span data-testid="text-footer-brand">SeatScout / a clearer way in</span>
         <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em]">
            Ticketmaster events · Tickets.dev sandbox comparisons
         </span>

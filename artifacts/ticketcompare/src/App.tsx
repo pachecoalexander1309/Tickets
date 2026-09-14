@@ -106,17 +106,7 @@ function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
           <div className="flex items-center gap-3" data-testid="brand-ticketcompare">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Ticket size={19} strokeWidth={2.2} aria-hidden="true" />
-            </div>
-            <div>
-              <div className="text-[15px] font-bold tracking-[-0.02em]">
-                SeatScout
-              </div>
-              <div className="font-mono-ui text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                official routes only
-              </div>
-            </div>
-          </div>
+              <img src="/seatscout-logo.png" alt="SeatScout" className="h-8 w-auto" />
           <div className="hidden items-center gap-5 sm:flex">
             <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               Live event search

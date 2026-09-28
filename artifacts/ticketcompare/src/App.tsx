@@ -36,6 +36,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 
+// Logo file lives in artifacts/ticketcompare/public/ (%20 is the space in the filename).
+const LOGO_SRC = '/seatscout-logo-light%20(1).png';
+
 const queryClient = new QueryClient();
 
 function Home() {
@@ -102,22 +105,22 @@ function Home() {
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground">
-<header className="border-b border-border bg-background">
-  <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-    <div className="flex items-center gap-3" data-testid="brand-seatscout">
-      <img src="/seatscout-logo-light (1).png" alt="SeatScout" className="h-10 w-auto" />
-    </div>
-    <div className="hidden items-center gap-5 sm:flex">
-      <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        Live event search
-      </span>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="h-2 w-2 rounded-full bg-[hsl(157_35%_40%)]" />
-        <span>Ticketmaster data</span>
-      </div>
-    </div>
-  </div>
-</header>
+      <header className="border-b border-border bg-background">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+          <div className="flex items-center gap-3" data-testid="brand-seatscout">
+            <img src={LOGO_SRC} alt="SeatScout" className="h-10 w-auto" />
+          </div>
+          <div className="hidden items-center gap-5 sm:flex">
+            <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              Price comparison
+            </span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-[hsl(157_35%_40%)]" />
+              <span>Ticketmaster data</span>
+            </div>
+          </div>
+        </div>
+      </header>
 
       <main>
         <section className="paper-grid border-b border-border">
@@ -125,18 +128,18 @@ function Home() {
             <div>
               <div className="mb-6 flex items-center gap-3 font-mono-ui text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
                 <span className="h-px w-8 bg-primary" />
-                Find the right door
+                Compare ticket prices
               </div>
               <h1 className="max-w-3xl text-balance text-[clamp(3.25rem,8vw,7rem)] font-semibold leading-[0.9] tracking-[-0.07em]">
-                Your next night out,{' '}
+                Same seats,{' '}
                 <span className="font-editorial font-normal italic tracking-[-0.055em] text-primary">
-                  without the noise.
+                  better price.
                 </span>
               </h1>
               <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                Search thousands of live events and go straight to the official
-                ticket source. No invented prices. No marketplace maze. Just a
-                clear route to the door.
+                Pick an event and see what each major seller is charging for the
+                same seats, fees included, side by side. No tab-hopping, no
+                surprises at checkout.
               </p>
 
               <form
@@ -159,7 +162,7 @@ function Home() {
                     data-testid="input-event-search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                     placeholder="What event are you looking for?"
+                    placeholder="Search an artist, team, or venue"
                     className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground/75"
                     maxLength={120}
                     autoComplete="off"
@@ -188,30 +191,30 @@ function Home() {
               </form>
               <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="font-mono-ui text-[10px] text-primary">TIP</span>
-                Try an artist, a city, or a venue name.
+                Find your event, then tap Compare tickets to see every seller's price.
               </div>
             </div>
 
             <aside className="self-end border-l border-border pl-5 sm:pl-7 lg:mb-2">
               <div className="mb-5 flex items-center gap-2 text-sm font-bold">
                 <ShieldCheck size={18} className="text-primary" aria-hidden="true" />
-                A more direct ticket search
+                How it works
               </div>
               <div className="space-y-5">
                 <TrustPoint
                   number="01"
-                  title="Live results"
-                  detail="Pulled from the official Ticketmaster event feed."
+                  title="Search an event"
+                  detail="Find any show, game, or tour from the Ticketmaster event feed."
                 />
                 <TrustPoint
                   number="02"
-                  title="Useful details"
-                  detail="See the date, venue, city, and start time before you click."
+                  title="Compare sellers"
+                  detail="See listings from multiple marketplaces side by side, fees included."
                 />
                 <TrustPoint
                   number="03"
-                  title="One clear next step"
-                  detail="Every result links to its official ticket page."
+                  title="Buy from the best one"
+                  detail="Every listing links straight to the seller."
                 />
               </div>
             </aside>
@@ -251,27 +254,27 @@ function Home() {
           <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-8 md:grid-cols-3 md:gap-0 lg:px-10">
             <MiniPrinciple
               icon={<Check size={16} aria-hidden="true" />}
-              title="Official by default"
-              detail="We send you to the primary ticket source."
+              title="Every seller, one view"
+              detail="See what each marketplace charges for the same event."
             />
             <MiniPrinciple
               icon={<CalendarDays size={16} aria-hidden="true" />}
-              title="The details that matter"
-              detail="Date, time, venue, city. Quickly scannable."
+              title="All-in pricing"
+              detail="Ticket price plus fees, so you compare the real total."
             />
             <MiniPrinciple
               icon={<ChevronRight size={16} aria-hidden="true" />}
-              title="Less wandering"
-              detail="Search once, choose your event, move on."
+              title="Straight to the seller"
+              detail="Pick the best price and go directly to that listing."
             />
           </div>
         </section>
       </main>
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-        <span data-testid="text-footer-brand">SeatScout / a clearer way in</span>
+        <span data-testid="text-footer-brand">SeatScout / compare before you buy</span>
         <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em]">
-           Ticketmaster events · Tickets.dev sandbox comparisons
+          Ticketmaster events · Tickets.dev sandbox comparisons
         </span>
       </footer>
     </div>
@@ -431,8 +434,8 @@ function ResultsSection({
             No events found
           </h3>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-            Try a broader artist, team, city, or venue name. We only show results
-            returned by the official event feed.
+            Try a broader artist, team, city, or venue name. We only show events
+            returned by the Ticketmaster event feed.
           </p>
         </div>
       )}
@@ -448,7 +451,7 @@ function ResultsSection({
             <span data-testid="text-result-count">
               {events.length} {events.length === 1 ? 'event' : 'events'} found
             </span>
-            <span>Official listings</span>
+            <span>Tap Compare tickets for prices</span>
           </div>
           {events.map((event) => (
             <EventCard key={event.id} event={event} onCompare={onCompare} />
@@ -593,7 +596,7 @@ function ComparisonSection({
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-mono-ui text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-            Seller price comparison
+              Seller price comparison
             </span>
             <span className="rounded-sm bg-primary/15 px-2 py-1 font-mono-ui text-[9px] font-bold uppercase tracking-[0.12em] text-primary">
               DEMO DATA

@@ -102,22 +102,22 @@ function Home() {
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground">
-      <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-          <div className="flex items-center gap-3" data-testid="brand-ticketcompare">
-  <img src="/seatscout-logo.png" alt="SeatScout" className="h-8 w-auto" />
-</div>
-<div className="hidden items-center gap-5 sm:flex">
-  <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-    Live event search
-  </span>
-  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-    <span className="h-2 w-2 rounded-full bg-[hsl(157_35%_40%)]" />
-    <span>Ticketmaster data</span>
+<header className="border-b border-border bg-background">
+  <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+    <div className="flex items-center gap-3" data-testid="brand-seatscout">
+      <img src="/IMG_0019.png" alt="SeatScout" className="h-10 w-auto" />
+    </div>
+    <div className="hidden items-center gap-5 sm:flex">
+      <span className="font-mono-ui text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        Live event search
+      </span>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="h-2 w-2 rounded-full bg-[hsl(157_35%_40%)]" />
+        <span>Ticketmaster data</span>
+      </div>
+    </div>
   </div>
-</div>
-
-      </header>
+</header>
 
       <main>
         <section className="paper-grid border-b border-border">
